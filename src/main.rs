@@ -109,12 +109,12 @@ fn main() -> io::Result<()> {
 
 fn list_recursive(path: &Path, args: &Args, use_color: bool) -> io::Result<()> {
     // If path is file -> just print it
-    if let Ok(m) = fs::symlink_metadata(path) {
-        if !m.is_dir() {
-            let item = mk_item_from_path(path.to_path_buf(), &m)?;
-            print_items(&[item], args, use_color, None)?;
-            return Ok(());
-        }
+    if let Ok(m) = fs::symlink_metadata(path)
+        && !m.is_dir()
+    {
+        let item = mk_item_from_path(path.to_path_buf(), &m)?;
+        print_items(&[item], args, use_color, None)?;
+        return Ok(());
     }
 
     // WalkDir includes root directory itself; we print per directory like `ls -R`.
@@ -372,7 +372,7 @@ fn format_mtime(meta: &Metadata) -> String {
         .modified()
         .ok()
         .and_then(|st| DateTime::<Local>::from(st).into())
-        .unwrap_or_else(|| Local::now());
+        .unwrap_or_else(Local::now);
 
     dt.format("%b %e %H:%M").to_string()
 }
