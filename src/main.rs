@@ -1,7 +1,7 @@
 use atty::Stream;
 use chrono::{DateTime, Local};
-use clap::{Parser, ValueEnum, ArgAction};
-use humansize::{format_size, DECIMAL};
+use clap::{ArgAction, Parser, ValueEnum};
+use humansize::{DECIMAL, format_size};
 use owo_colors::OwoColorize;
 use std::cmp::Ordering;
 use std::ffi::OsString;
@@ -19,7 +19,7 @@ use walkdir::WalkDir;
 )]
 struct Args {
     #[arg(long = "help", action = ArgAction::Help)]
-    _help: Option<bool>,   // WICHTIG: Option<bool> oder kein normales bool
+    _help: Option<bool>, // WICHTIG: Option<bool> oder kein normales bool
 
     #[arg(short = 'a', long = "all")]
     all: bool,
@@ -249,7 +249,12 @@ fn compare_items(a: &Item, b: &Item, args: &Args) -> Ordering {
     a.file_name.cmp(&b.file_name)
 }
 
-fn print_items(items: &[Item], args: &Args, use_color: bool, base_dir: Option<&Path>) -> io::Result<()> {
+fn print_items(
+    items: &[Item],
+    args: &Args,
+    use_color: bool,
+    base_dir: Option<&Path>,
+) -> io::Result<()> {
     if items.is_empty() {
         return Ok(());
     }
@@ -304,7 +309,9 @@ fn format_long(it: &Item, args: &Args, use_color: bool) -> io::Result<String> {
         String::new()
     };
 
-    Ok(format!("{perms} {nlink:>2} {owner:<8} {group:<8} {size:>8} {time} {name}{link_part}"))
+    Ok(format!(
+        "{perms} {nlink:>2} {owner:<8} {group:<8} {size:>8} {time} {name}{link_part}"
+    ))
 }
 
 fn format_name(it: &Item, args: &Args, use_color: bool) -> io::Result<String> {
