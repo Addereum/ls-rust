@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build binaries (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build (release)
+        run: cargo build --release
+
+      - name: Package (unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          BIN_NAME=$(basename target/release/* | head -n 1)
+          cp "target/release/${BIN_NAME}" "dist/${BIN_NAME}-${{ runner.os }}"
+          cd dist
+          tar -czf "${BIN_NAME}-${{ runner.os }}.tar.gz" "${BIN_NAME}-${{ runner.os }}"
+
+      - name: Package (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $bin = Get-ChildItem target/release -Filter *.exe | Select-Object -First 1
+          Copy-Item $bin.FullName "dist\$($bin.BaseName)-${{ runner.os }}.exe"
+          Compress-Archive -Path "dist\$($bin.BaseName)-${{ runner.os }}.exe" -DestinationPath "dist\$($bin.BaseName)-${{ runner.os }}.zip" -Force
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bins-${{ runner.os }}
+          path: dist/*
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/**/*
