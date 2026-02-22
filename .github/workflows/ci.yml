@@ -27,7 +27,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Format
-        # Falls du fmt (noch) nicht erzwingen willst, ändere das auf: cargo fmt --all
         run: cargo fmt --all -- --check
 
       - name: Clippy
