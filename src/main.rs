@@ -371,7 +371,7 @@ fn format_mtime(meta: &Metadata) -> String {
     let dt: DateTime<Local> = meta
         .modified()
         .ok()
-        .map(|st| DateTime::<Local>::from(st))
+        .map(DateTime::<Local>::from)
         .unwrap_or_else(Local::now);
 
     dt.format("%b %e %H:%M").to_string()
